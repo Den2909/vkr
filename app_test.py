@@ -8,7 +8,6 @@ import torch.nn as nn
 class_names = ['Песок из отсевов дробления 0-5 мм', 'ЩПС фр. 0-20 мм НЕГОСТ', 'Щебень 25-60 мм', 'Щебень фр. 20-40 мм', 'Щебень фр. 40-70 мм', 'Щебень фр. 5-20 мм', 'Щебень фракция 8-16']
 num_classes = len(class_names)
 
-# Загрузка предварительно обученной модели EfficientNet
 class SpatialAttention(nn.Module):
     def __init__(self, kernel_size=7):
         super(SpatialAttention, self).__init__()
@@ -80,7 +79,7 @@ def predict_class(image):
     return predicted_class.item()
 
 def main():
-    st.title("Фракция груза классификации")
+    st.title("Классификация фракции щебня")
     uploaded_image = st.file_uploader("Выберите изображение", type=["jpg", "jpeg", "png"])
 
     if uploaded_image is not None:
