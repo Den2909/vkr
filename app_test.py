@@ -73,10 +73,9 @@ def load_model(model, checkpoint_path):
     return model
 
 # Загружаем веса
-try:
-    model = load_model(model, 'checkpoint.pth')
-except FileNotFoundError:
-    print("Ошибка: Файл checkpoint.pth не найден!")
+
+model = load_model(model, 'checkpoint.pth')
+
 
 # Предобработка изображений (убраны аугментации)
 preprocess = transforms.Compose([
