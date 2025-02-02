@@ -5,7 +5,7 @@ from torchvision import transforms
 from efficientnet_pytorch import EfficientNet
 import torch.nn as nn
 
-class_names = name_class = ['Вскрышной  грунт',
+class_names = ['Вскрышной  грунт',
  'Глина кирпичная',
  'Грунт гранитный скальный ГЛЫБОВЫЙ фр.0-500',
  'Грунт гранитный скальный глыбовый',
@@ -28,6 +28,7 @@ class_names = name_class = ['Вскрышной  грунт',
  'Щебень фракция 70-120']
 num_classes = len(class_names)
 
+# Модель с пространственным вниманием
 class SpatialAttention(nn.Module):
     def __init__(self, kernel_size=7):
         super(SpatialAttention, self).__init__()
@@ -51,7 +52,7 @@ class MyNetWithSpatialAttention(nn.Module):
 
         self.spatial_attention = SpatialAttention()
 
-        self.efficient_net._fc = nn.Linear(in_features_efficient_net, num_of_classes)
+        self.efficient_net._fc = nn.Linear(in_features_efficient_net, num_classes)  # исправлено
 
     def forward(self, x):
         spatial_attention = self.spatial_attention(x)
@@ -60,39 +61,40 @@ class MyNetWithSpatialAttention(nn.Module):
 
         return x
 
-
+# Определяем устройство
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+# Создаем модель
 model = MyNetWithSpatialAttention().to(device)
 
-def load_model(model, checkpoint_path, map_location=None):
+# Функция загрузки модели
+def load_model(model, checkpoint_path):
     with open(checkpoint_path, 'rb') as f:
-        checkpoint = torch.load(f, map_location=torch.device('cpu'))
+        checkpoint = torch.load(f, map_location=torch.device(device))  # исправлено
     model.load_state_dict(checkpoint['model_state_dict'])
+    model.eval()
     print(f"Модель успешно загружена из {checkpoint_path}")
     return model
 
-loaded_model = load_model(model, 'checkpoint.pth')
+# Загружаем веса
+model = load_model(model, 'checkpoint.pth')
 
-model.eval()
-
+# Предобработка изображений (убраны аугментации)
 preprocess = transforms.Compose([
     transforms.Resize((300, 300)),
     transforms.ToTensor(),
     transforms.Normalize([0.4914, 0.4822, 0.4465], [0.247, 0.243, 0.261]),
-    transforms.RandomHorizontalFlip(p=0.5),
-    transforms.RandomRotation((-30, 30)),
-    transforms.RandomGrayscale(p=0.3),
-    transforms.RandomVerticalFlip(p=0.5),
 ])
 
+# Функция предсказания
 def predict_class(image):
-    input_tensor = preprocess(image).unsqueeze(0)
+    input_tensor = preprocess(image).unsqueeze(0).to(device)  # исправлено
     with torch.no_grad():
         output = model(input_tensor)
         _, predicted_class = torch.max(output, 1)
     return predicted_class.item()
 
+# Интерфейс Streamlit
 def main():
     st.title("Классификация фракции щебня")
     uploaded_image = st.file_uploader("Выберите изображение", type=["jpg", "jpeg", "png"])
