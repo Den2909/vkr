@@ -102,6 +102,7 @@ def main():
     if uploaded_image is not None:
         st.image(uploaded_image, caption="Загруженное изображение", use_column_width=True)
         pil_image = Image.open(uploaded_image).convert('RGB')
+        pil_image = pil_image.copy()
 
         if st.button("Классифицировать"):
             predicted_class = predict_class(pil_image)
