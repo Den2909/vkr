@@ -4,6 +4,7 @@ import torch
 from torchvision import transforms
 from efficientnet_pytorch import EfficientNet
 import torch.nn as nn
+import numpy as np
 
 class_names = ['Вскрышной  грунт',
  'Глина кирпичная',
