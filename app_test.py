@@ -5,7 +5,27 @@ from torchvision import transforms
 from efficientnet_pytorch import EfficientNet
 import torch.nn as nn
 
-class_names = ['Песок из отсевов дробления 0-5 мм', 'ЩПС фр. 0-20 мм НЕГОСТ', 'Щебень 25-60 мм', 'Щебень фр. 20-40 мм', 'Щебень фр. 40-70 мм', 'Щебень фр. 5-20 мм', 'Щебень фракция 8-16']
+class_names = name_class = ['Вскрышной  грунт',
+ 'Глина кирпичная',
+ 'Грунт гранитный скальный ГЛЫБОВЫЙ фр.0-500',
+ 'Грунт гранитный скальный глыбовый',
+ 'Грунт гранитный скальный гравийный фр.0-300',
+ 'Дизельное  топливо',
+ 'Калиброванный-ДРОБЛЕННЫЙ скальный грунт фр.0-200',
+ 'Отсев(фракция 0-3)',
+ 'Отсев(фракция 0-5)',
+ 'ПустойКузов',
+ 'Супесь',
+ 'ЩПС фракция 0-10',
+ 'ЩПС фракция 0-120',
+ 'ЩПС фракция 0-20',
+ 'ЩПС фракция 0-40',
+ 'ЩПС фракция 0-80',
+ 'Щебень фракция 03-10',
+ 'Щебень фракция 20-40',
+ 'Щебень фракция 40-70',
+ 'Щебень фракция 5-20',
+ 'Щебень фракция 70-120']
 num_classes = len(class_names)
 
 class SpatialAttention(nn.Module):
@@ -22,29 +42,24 @@ class SpatialAttention(nn.Module):
         return self.sigmoid(x)
 
 class MyNetWithSpatialAttention(nn.Module):
-    def __init__(self, in_channels: int = 3, num_of_classes: int = num_classes):
+    def __init__(self, in_channels: int = 3):
         super(MyNetWithSpatialAttention, self).__init__()
+
         self.efficient_net = EfficientNet.from_pretrained('efficientnet-b1')
+
         in_features_efficient_net = self.efficient_net._fc.in_features
-        self.efficient_net._fc = nn.Identity()
+
         self.spatial_attention = SpatialAttention()
-        self.base_classifier = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(in_features_efficient_net, 1024),
-            nn.ReLU(inplace=True),
-        )
-        self.classifier = nn.Sequential(
-            nn.Linear(1024, num_of_classes)
-        )
+
+        self.efficient_net._fc = nn.Linear(in_features_efficient_net, num_of_classes)
 
     def forward(self, x):
-        x_efficient_net = self.efficient_net.extract_features(x)
-        spatial_attention = self.spatial_attention(x_efficient_net)
-        x_efficient_net = x_efficient_net * spatial_attention
-        x_efficient_net = x_efficient_net.mean([2, 3])
-        x_base_model = self.base_classifier(x_efficient_net)
-        x = self.classifier(x_base_model)
+        spatial_attention = self.spatial_attention(x)
+        x = x * spatial_attention
+        x = self.efficient_net(x)
+
         return x
+
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
