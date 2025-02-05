@@ -36,7 +36,7 @@ class SpatialAttention(nn.Module):
 
 # Модель с пространственным вниманием
 class MyNetWithSpatialAttention(nn.Module):
-    def __init__(self, in_channels: int = 3, num_of_classes: int = len(class_names)):  # Исправлено на len(class_names)
+    def __init__(self, in_channels: int = 3, num_of_classes: int = len(class_names)):  
         super(MyNetWithSpatialAttention, self).__init__()
         self.efficient_net = EfficientNet.from_pretrained('efficientnet-b1')
         in_features_efficient_net = self.efficient_net._fc.in_features
@@ -48,7 +48,7 @@ class MyNetWithSpatialAttention(nn.Module):
             nn.ReLU(inplace=True),
         )
         self.classifier = nn.Sequential(
-            nn.Linear(1024, num_of_classes)  # Исправлено на num_of_classes
+            nn.Linear(1024, num_of_classes)  
         )
 
     def forward(self, x):
@@ -66,7 +66,7 @@ model = MyNetWithSpatialAttention(num_of_classes=len(class_names)).to(device)
 # Функция загрузки модели
 def load_model(model, checkpoint_path):
     with open(checkpoint_path, 'rb') as f:
-        checkpoint = torch.load(f, map_location=device)  # исправлено
+        checkpoint = torch.load(f, map_location=device)  
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
     print(f"Модель успешно загружена из {checkpoint_path}")
@@ -77,7 +77,7 @@ def load_model(model, checkpoint_path):
 model = load_model(model, 'checkpoint.pth')
 
 
-# Предобработка изображений (убраны аугментации)
+# Предобработка изображений 
 preprocess = transforms.Compose([
     transforms.Resize((300, 300)),
     transforms.ToTensor(),
